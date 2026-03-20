@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASMO v2.0 — Adaptive Social Media Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+:root{
+  --bg:#f4f4f5;--surface:#ffffff;--surface2:#fafafa;--surface3:#f0f0f1;
+  --border:#e4e4e7;--border2:#d1d1d6;
+  --text:#18181b;--t2:#52525b;--t3:#a1a1aa;--t4:#d4d4d8;
+  --blue:#2563eb;--blue-bg:#eff6ff;--blue-b:#bfdbfe;
+  --green:#16a34a;--green-bg:#f0fdf4;--green-b:#bbf7d0;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-b:#fde68a;
+  --red:#dc2626;--red-bg:#fef2f2;--red-b:#fecaca;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-b:#ddd6fe;
+  --sans:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+  --r:8px;--rl:12px;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow-x:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:50;overflow-y:auto;}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2)}
+.slogo{padding:16px 14px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;}
+.slogo-box{width:28px;height:28px;border-radius:7px;background:var(--text);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:-0.5px;flex-shrink:0;}
+.slogo-name{font-size:13px;font-weight:700;color:var(--text);}
+.slogo-ver{font-size:10px;color:var(--t3);font-family:var(--mono);}
+.ssec{padding:14px 10px 3px;font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--t4);font-family:var(--mono);}
+.ni{display:flex;align-items:center;gap:8px;padding:7px 10px;margin:1px 4px;border-radius:6px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--t2);transition:all 0.12s;user-select:none;}
+.ni:hover{background:var(--bg);color:var(--text);}
+.ni.active{background:var(--text);color:#fff;}
+.ni-icon{font-size:13px;width:16px;text-align:center;flex-shrink:0;}
+.nbadge{margin-left:auto;padding:1px 6px;border-radius:100px;font-size:10px;font-weight:600;font-family:var(--mono);}
+.nb-r{background:var(--red-bg);color:var(--red);}
+.nb-a{background:var(--amber-bg);color:var(--amber);}
+.nb-g{background:var(--green-bg);color:var(--green);}
+.nb-p{background:var(--purple-bg);color:var(--purple);}
+.sfooter{margin-top:auto;padding:12px;border-top:1px solid var(--border);}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;}
+.sstat{font-size:11px;color:var(--t3);font-family:var(--mono);}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 22px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;}
+.tb-left{display:flex;align-items:center;gap:6px;}
+.tb-title{font-size:13px;font-weight:600;}
+.tb-sep{color:var(--t4);}
+.tb-crumb{font-size:11px;color:var(--t3);font-family:var(--mono);}
+.tb-right{display:flex;gap:7px;}
+.btn{padding:6px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--t2);font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.12s;white-space:nowrap;}
+.btn:hover{background:var(--bg);color:var(--text);}
+.btn-p{background:var(--text);color:#fff;border-color:var(--text);}
+.btn-p:hover{background:#27272a;}
+.btn-r{color:var(--red);border-color:var(--red-b);}
+.btn-r:hover{background:var(--red-bg);}
+
+.content{padding:18px 22px;flex:1;}
+.view{display:none;}
+.view.active{display:block;animation:fi 0.18s ease both;}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ALERT */
+.alert{border-radius:var(--r);padding:10px 13px;display:flex;align-items:center;gap:9px;margin-bottom:14px;font-size:12px;}
+.alert-warn{background:var(--amber-bg);border:1px solid var(--amber-b);color:var(--amber);}
+.alert-red{background:var(--red-bg);border:1px solid var(--red-b);color:var(--red);}
+.alert-dismiss{margin-left:auto;cursor:pointer;font-size:11px;opacity:0.6;}
+.alert-dismiss:hover{opacity:1;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:13px 15px;transition:box-shadow 0.15s;}
+.sc:hover{box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.sc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+.sc-label{font-size:10px;font-weight:600;color:var(--t3);font-family:var(--mono);letter-spacing:0.04em;text-transform:uppercase;}
+.sc-val{font-size:22px;font-weight:700;color:var(--text);font-family:var(--mono);line-height:1;margin-bottom:3px;}
+.sc-delta{font-size:10px;font-family:var(--mono);}
+.up{color:var(--green)}.dn{color:var(--red)}.wa{color:var(--amber)}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:12px;}
+.ch{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.ct{font-size:11.5px;font-weight:600;color:var(--text);}
+.ca{font-size:11px;color:var(--blue);cursor:pointer;font-weight:500;}
+.ca:hover{text-decoration:underline;}
+.cb{padding:14px;}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.g64{display:grid;grid-template-columns:1.55fr 1fr;gap:12px;}
+.g3c{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;font-size:10.5px;font-weight:600;font-family:var(--mono);}
+.bg{background:var(--green-bg);color:var(--green);border:1px solid var(--green-b);}
+.ba{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-b);}
+.br{background:var(--red-bg);color:var(--red);border:1px solid var(--red-b);}
+.bb{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-b);}
+.bgr{background:var(--bg);color:var(--t2);border:1px solid var(--border);}
+.bp{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-b);}
+
+/* CHART */
+.bar-chart{display:flex;align-items:flex-end;gap:3px;height:54px;}
+.bc-bar{flex:1;border-radius:3px 3px 0 0;background:#e4e4e7;transition:background 0.15s;cursor:pointer;}
+.bc-bar:hover{background:#a1a1aa;}
+.bc-bar.today{background:var(--text);}
+.bc-labels{display:flex;gap:3px;margin-top:4px;}
+.bc-lbl{flex:1;text-align:center;font-size:9px;color:var(--t4);font-family:var(--mono);}
+
+/* RISK METRICS */
+.rm-wrap{display:flex;flex-direction:column;gap:9px;}
+.rm-row{display:flex;justify-content:space-between;margin-bottom:3px;}
+.rm-label{font-size:12px;color:var(--t2);}
+.rm-val{font-size:10px;color:var(--t3);font-family:var(--mono);}
+.rm-track{height:3px;background:var(--border);border-radius:2px;}
+.rm-fill{height:100%;border-radius:2px;transition:width 1s ease;}
+.rf-g{background:var(--green)}.rf-a{background:var(--amber)}.rf-b{background:var(--blue)}.rf-t{background:var(--text)}
+
+/* GAUGE */
+.gauge-box{text-align:center;padding:10px 0 14px;}
+.gauge-num{font-size:34px;font-weight:700;font-family:var(--mono);line-height:1;margin-bottom:3px;}
+.gauge-sub{font-size:10px;color:var(--t3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;}
+
+/* CLUSTERS */
+.cluster-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.ci{border:1px solid var(--border);border-radius:var(--r);padding:10px 11px;cursor:pointer;transition:all 0.15s;border-left-width:3px;}
+.ci.healthy{border-left-color:var(--green);}
+.ci.warning{border-left-color:var(--amber);}
+.ci.paused{border-left-color:var(--t4);}
+.ci:hover{box-shadow:0 2px 8px rgba(0,0,0,0.07);}
+.ci-name{font-size:11px;font-weight:700;font-family:var(--mono);margin-bottom:2px;}
+.ci-pages{font-size:10px;color:var(--t3);margin-bottom:5px;}
+.ci-stats{display:flex;gap:8px;font-size:10px;font-family:var(--mono);}
+
+/* ACTIVITY */
+.act-list{display:flex;flex-direction:column;}
+.act-item{display:flex;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.act-item:last-child{border-bottom:none;}
+.adot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.act-text{font-size:12px;color:var(--t2);line-height:1.5;}
+.act-text strong{color:var(--text);font-weight:600;}
+.act-time{font-size:10px;color:var(--t4);font-family:var(--mono);margin-top:2px;}
+
+/* TABLE */
+.t{width:100%;border-collapse:collapse;font-size:12px;}
+.t th{font-size:10px;font-weight:600;color:var(--t3);font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;padding:8px 11px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2);}
+.t td{padding:8px 11px;border-bottom:1px solid var(--border);color:var(--t2);}
+.t tr:last-child td{border-bottom:none;}
+.t tr:hover td{background:var(--bg);}
+.t .pn{font-weight:600;color:var(--text);}
+
+/* TOGGLE */
+.trow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.trow:last-child{border-bottom:none;}
+.tog{position:relative;width:32px;height:17px;background:var(--border2);border-radius:100px;cursor:pointer;transition:background 0.18s;flex-shrink:0;}
+.tog.on{background:var(--text);}
+.tog::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;transition:left 0.18s;box-shadow:0 1px 3px rgba(0,0,0,0.15);}
+.tog.on::after{left:17px;}
+.tlabel{font-size:12px;color:var(--t2);}
+
+/* QUEUE */
+.queue{display:flex;flex-direction:column;gap:5px;}
+.qi{border:1px solid var(--border);border-radius:var(--r);padding:9px 11px;display:flex;align-items:center;gap:9px;background:var(--surface);transition:border-color 0.12s;}
+.qi:hover{border-color:var(--border2);}
+.qdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.qm{flex:1;min-width:0;}
+.qt{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;}
+.qmeta{display:flex;gap:10px;font-size:10px;color:var(--t3);font-family:var(--mono);}
+.qact{display:flex;gap:4px;}
+.qbtn{padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;font-size:11px;cursor:pointer;color:var(--t2);font-family:var(--sans);transition:all 0.12s;}
+.qbtn:hover{background:var(--bg);}
+.qbtn.ok{border-color:var(--green-b);color:var(--green);}
+.qbtn.ok:hover{background:var(--green-bg);}
+.qbtn.wa{border-color:var(--amber-b);color:var(--amber);}
+
+/* CONNECT PAGES */
+.plats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.pc{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:15px;transition:all 0.15s;cursor:pointer;}
+.pc:hover{border-color:var(--border2);box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.pc.connected{border-color:var(--green-b);background:var(--green-bg);}
+.pc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+.pc-logo{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;}
+.pc-cdot{width:8px;height:8px;border-radius:50%;background:var(--green);}
+.pc-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.pc-desc{font-size:11px;color:var(--t3);line-height:1.5;margin-bottom:10px;}
+.pc-footer{display:flex;align-items:center;justify-content:space-between;padding-top:9px;border-top:1px solid var(--border);}
+.pc-count{font-size:11px;color:var(--t3);font-family:var(--mono);}
+.pc-count span{color:var(--t2);font-weight:600;}
+.cbtn{padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg);font-size:11px;font-weight:500;cursor:pointer;color:var(--t2);transition:all 0.12s;}
+.cbtn:hover{background:var(--text);color:#fff;border-color:var(--text);}
+.cbtn.con{background:var(--green-bg);color:var(--green);border-color:var(--green-b);}
+.cbtn.con:hover{background:#dcfce7;}
+
+/* PROXY SECTION */
+.proxy-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;}
+.proxy-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px;}
+.proxy-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.proxy-cluster{font-size:11px;font-weight:700;font-family:var(--mono);}
+.proxy-ip{font-size:11px;color:var(--t3);font-family:var(--mono);margin-bottom:8px;}
+.proxy-type{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.proxy-type-label{font-size:11px;color:var(--t2);}
+.proxy-stats{display:flex;gap:12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.ps-item{font-size:10px;font-family:var(--mono);color:var(--t3);}
+.ps-item span{color:var(--text);font-weight:600;}
+.proxy-actions{display:flex;gap:5px;margin-top:8px;}
+
+/* WARMUP */
+.warmup-list{display:flex;flex-direction:column;gap:7px;}
+.wu-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;display:flex;align-items:center;gap:12px;}
+.wu-page{flex:1;}
+.wu-name{font-size:12px;font-weight:600;margin-bottom:2px;}
+.wu-handle{font-size:10px;color:var(--t3);font-family:var(--mono);}
+.wu-progress{width:120px;}
+.wu-prog-label{display:flex;justify-content:space-between;font-size:10px;font-family:var(--mono);color:var(--t3);margin-bottom:3px;}
+.wu-bar{height:3px;background:var(--border);border-radius:2px;}
+.wu-fill{height:100%;border-radius:2px;background:var(--blue);}
+.wu-week{font-size:11px;font-family:var(--mono);color:var(--t2);width:60px;text-align:center;}
+.wu-actions{display:flex;gap:4px;}
+
+/* FINGERPRINT */
+.fp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.fp-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;}
+.fp-cluster{font-size:11px;font-weight:700;font-family:var(--mono);margin-bottom:8px;}
+.fp-detail{display:flex;flex-direction:column;gap:5px;}
+.fp-row{display:flex;justify-content:space-between;font-size:11px;}
+.fp-key{color:var(--t3);font-family:var(--mono);}
+.fp-val{color:var(--text);font-weight:500;font-size:11px;}
+
+/* MIMICRY */
+.mimicry-list{display:flex;flex-direction:column;gap:7px;}
+.mim-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;display:flex;align-items:center;gap:12px;}
+.mim-icon{width:32px;height:32px;border-radius:7px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.mim-info{flex:1;}
+.mim-name{font-size:12px;font-weight:600;margin-bottom:2px;}
+.mim-desc{font-size:11px;color:var(--t3);}
+
+/* TOKEN */
+.token-list{display:flex;flex-direction:column;gap:6px;}
+.token-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;display:flex;align-items:center;gap:10px;}
+.t-plat{font-size:15px;}
+.t-info{flex:1;}
+.t-name{font-size:12px;font-weight:500;}
+.t-mask{font-size:10px;color:var(--t4);font-family:var(--mono);}
+.t-exp{font-size:10px;color:var(--t3);font-family:var(--mono);flex-shrink:0;}
+
+/* WIZARD */
+.wiz-steps{display:flex;border-bottom:1px solid var(--border);margin-bottom:18px;}
+.ws{flex:1;padding:9px 0;text-align:center;border-bottom:2px solid transparent;font-size:10px;color:var(--t3);letter-spacing:0.07em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;margin-bottom:-1px;font-family:var(--mono);}
+.ws.active{border-bottom-color:var(--text);color:var(--text);font-weight:700;}
+.ws.done{border-bottom-color:var(--green);color:var(--green);}
+.wc{display:none;}
+.wc.active{display:block;}
+.flabel{font-size:10px;font-weight:600;color:var(--t3);font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;display:block;}
+.finput,.fselect,.ftextarea{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:var(--sans);font-size:12px;outline:none;transition:border-color 0.15s;margin-bottom:10px;}
+.finput:focus,.fselect:focus,.ftextarea:focus{border-color:var(--text);}
+.ftextarea{resize:vertical;min-height:80px;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fgroup{display:flex;flex-direction:column;}
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px;}
+.vc{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:10px;}
+.vtag{font-size:10px;font-weight:700;color:var(--t2);margin-bottom:4px;font-family:var(--mono);}
+.vtext{font-size:11px;color:var(--t2);line-height:1.5;margin-bottom:3px;}
+.vlang{font-size:10px;color:var(--t4);font-family:var(--mono);}
+.wiz-nav{display:flex;gap:7px;margin-top:14px;}
+.wb{padding:7px 14px;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg);color:var(--t2);font-family:var(--sans);font-size:12px;cursor:pointer;transition:all 0.12s;}
+.wb:hover{background:var(--border);color:var(--text);}
+.wb.p{background:var(--text);color:#fff;border-color:var(--text);font-weight:600;}
+.wb.p:hover{background:#27272a;}
+
+/* PLATFORM RISKS */
+.pr-list{display:flex;flex-direction:column;gap:7px;}
+.pr-row{display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);}
+.pr-icon{font-size:15px;width:20px;text-align:center;}
+.pr-info{flex:1;}
+.pr-name{font-size:12px;font-weight:500;}
+.pr-detail{font-size:10px;color:var(--t3);font-family:var(--mono);}
+.pr-track{width:70px;height:3px;background:var(--border);border-radius:2px;}
+.pr-fill{height:100%;border-radius:2px;}
+.pr-num{font-size:11px;font-family:var(--mono);width:24px;text-align:right;}
+
+/* RULE */
+.rule{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:7px;}
+.rule-tag{font-size:9px;color:var(--t4);font-family:var(--mono);margin-bottom:3px;}
+.rule-text{font-size:11.5px;color:var(--t2);margin-bottom:7px;line-height:1.5;}
+
+/* HBAR */
+.hbw{display:flex;align-items:center;gap:7px;}
+.hbar{width:54px;height:3px;background:var(--border);border-radius:2px;}
+.hfill{height:100%;border-radius:2px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.25);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:22px;max-width:400px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.12);transform:translateY(8px);transition:transform 0.2s;}
+.modal-overlay.open .modal-box{transform:translateY(0);}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.mtitle{font-size:14px;font-weight:700;}
+.mclose{background:none;border:none;cursor:pointer;font-size:16px;color:var(--t3);}
+.mclose:hover{color:var(--text);}
+.msub{font-size:12px;color:var(--t3);line-height:1.6;margin-bottom:14px;}
+.osteps{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+.os{display:flex;align-items:flex-start;gap:9px;background:var(--bg);border-radius:var(--r);padding:9px 11px;}
+.os-num{width:20px;height:20px;border-radius:50%;background:var(--text);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);}
+.os-text{font-size:11.5px;color:var(--t2);line-height:1.5;}
+.minput,.mselect{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:var(--sans);font-size:12px;outline:none;margin-bottom:7px;transition:border-color 0.15s;}
+.minput:focus,.mselect:focus{border-color:var(--text);}
+.mactions{display:flex;gap:7px;margin-top:14px;}
+.mcancel{flex:1;padding:8px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--t2);font-family:var(--sans);font-size:12px;cursor:pointer;}
+.mconnect{flex:2;padding:8px;border-radius:var(--r);border:none;background:var(--text);color:#fff;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;transition:background 0.15s;}
+.mconnect:hover{background:#27272a;}
+
+/* KILL */
+.ks-banner{display:none;align-items:center;gap:9px;background:var(--red-bg);border:1px solid var(--red-b);border-radius:var(--r);padding:9px 13px;margin-bottom:12px;font-size:12px;color:var(--red);}
+.ks-banner.visible{display:flex;}
+.kill-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.3);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.kill-overlay.open{opacity:1;pointer-events:all;}
+.kill-box{background:var(--surface);border:1px solid var(--red-b);border-radius:16px;padding:22px;max-width:380px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.12);transform:translateY(8px);transition:transform 0.2s;}
+.kill-overlay.open .kill-box{transform:translateY(0);}
+.kill-title{font-size:12px;font-weight:700;color:var(--red);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:9px;}
+.kill-body{font-size:12px;color:var(--t2);line-height:1.65;margin-bottom:10px;}
+.kill-scope{background:var(--bg);border-radius:var(--r);padding:9px 11px;margin-bottom:12px;}
+.kill-scope li{font-size:11px;color:var(--t3);font-family:var(--mono);padding:2px 0;list-style:none;}
+.kill-scope li::before{content:'→ ';color:var(--red);}
+.kill-actions{display:flex;gap:7px;}
+.kcancel{flex:1;padding:7px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--t2);font-family:var(--sans);font-size:12px;cursor:pointer;}
+.kconfirm{flex:1;padding:7px;border-radius:var(--r);border:none;background:var(--red);color:#fff;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="slogo">
+    <div class="slogo-box">AS</div>
+    <div><div class="slogo-name">ASMO</div><div class="slogo-ver">v2.0</div></div>
+  </div>
+
+  <div class="ssec">Overview</div>
+  <div class="ni active" onclick="sw('dashboard',this)"><span class="ni-icon">▣</span>Dashboard</div>
+
+  <div class="ssec">Operations</div>
+  <div class="ni" onclick="sw('content',this)"><span class="ni-icon">✦</span>Content Engine<span class="nbadge nb-a">3</span></div>
+  <div class="ni" onclick="sw('distribution',this)"><span class="ni-icon">↗</span>Distribution</div>
+  <div class="ni" onclick="sw('risk',this)"><span class="ni-icon">◎</span>Risk Engine<span class="nbadge nb-r">2</span></div>
+
+  <div class="ssec">Accounts</div>
+  <div class="ni" onclick="sw('connect',this)"><span class="ni-icon">⊕</span>Connect Pages<span class="nbadge nb-g">New</span></div>
+  <div class="ni" onclick="sw('clusters',this)"><span class="ni-icon">◈</span>Clusters</div>
+  <div class="ni" onclick="sw('security',this)"><span class="ni-icon">□</span>Security</div>
+
+  <div class="ssec">Detection Shield 🆕</div>
+  <div class="ni" onclick="sw('proxy',this)"><span class="ni-icon">🌐</span>IP Proxy Manager</div>
+  <div class="ni" onclick="sw('warmup',this)"><span class="ni-icon">🔥</span>Page Warm-Up</div>
+  <div class="ni" onclick="sw('fingerprint',this)"><span class="ni-icon">👁</span>Fingerprint</div>
+  <div class="ni" onclick="sw('mimicry',this)"><span class="ni-icon">🎭</span>Behavior Mimicry</div>
+
+  <div class="ssec">System</div>
+  <div class="ni" onclick="sw('killswitch',this)"><span class="ni-icon">⊗</span>Kill Switch</div>
+
+  <div class="sfooter">
+    <span class="sdot"></span>
+    <span class="sstat">All systems OK</span>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <span class="tb-title" id="tbTitle">Dashboard</span>
+      <span class="tb-sep">/</span>
+      <span class="tb-crumb" id="tbCrumb">Overview</span>
+    </div>
+    <div class="tb-right">
+      <button class="btn btn-r" onclick="document.getElementById('killModal').classList.add('open')">⊗ Kill Switch</button>
+      <button class="btn" onclick="sw('connect',null)">⊕ Connect Pages</button>
+      <button class="btn btn-p" onclick="sw('content',null)">+ New Content</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="alert alert-warn">
+        <span>⚠</span>
+        <span><strong>Risk Alert:</strong> PK-North velocity 18% above threshold. Auto-slowdown active.</span>
+        <span class="alert-dismiss" onclick="this.closest('.alert').style.display='none'">Dismiss</span>
+      </div>
+      <div class="stats-row">
+        <div class="sc"><div class="sc-top"><span class="sc-label">Active Pages</span></div><div class="sc-val">47</div><div class="sc-delta up">↑ +3 this week</div></div>
+        <div class="sc"><div class="sc-top"><span class="sc-label">Network Risk</span></div><div class="sc-val wa">72</div><div class="sc-delta wa">▲ Moderate</div></div>
+        <div class="sc"><div class="sc-top"><span class="sc-label">Posts Today</span></div><div class="sc-val">84</div><div class="sc-delta up">↑ 6 clusters</div></div>
+        <div class="sc"><div class="sc-top"><span class="sc-label">Pending Review</span></div><div class="sc-val wa">7</div><div class="sc-delta wa">Human approval</div></div>
+        <div class="sc"><div class="sc-top"><span class="sc-label">Reach (7d)</span></div><div class="sc-val">284K</div><div class="sc-delta up">↑ +22%</div></div>
+      </div>
+      <div class="g64">
+        <div class="card">
+          <div class="ch"><span class="ct">Posting Velocity — 14 Days</span><span class="ca">Export →</span></div>
+          <div class="cb">
+            <div class="bar-chart" id="chart"></div>
+            <div class="bc-labels" id="chartLbl"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><span class="ct">Network Risk Score</span></div>
+          <div class="cb">
+            <div class="gauge-box">
+              <div style="font-size:9px;color:var(--t4);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;">Trust Index</div>
+              <div class="gauge-num">72<span style="font-size:14px;color:var(--t3)">/100</span></div>
+              <div class="gauge-sub">Moderate Risk</div>
+              <div style="margin-top:7px"><span class="badge ba">Needs Attention</span></div>
+            </div>
+            <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+            <div class="rm-wrap">
+              <div><div class="rm-row"><span class="rm-label">Content Similarity</span><span class="rm-val">28%</span></div><div class="rm-track"><div class="rm-fill rf-g" style="width:28%"></div></div></div>
+              <div><div class="rm-row"><span class="rm-label">Pattern Variance</span><span class="rm-val">71%</span></div><div class="rm-track"><div class="rm-fill rf-t" style="width:71%"></div></div></div>
+              <div><div class="rm-row"><span class="rm-label">API Usage</span><span class="rm-val">64%</span></div><div class="rm-track"><div class="rm-fill rf-a" style="width:64%"></div></div></div>
+              <div><div class="rm-row"><span class="rm-label">Anomalies</span><span class="rm-val">12%</span></div><div class="rm-track"><div class="rm-fill rf-g" style="width:12%"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="ch"><span class="ct">Cluster Status</span><span class="ca" onclick="sw('clusters',null)">View all →</span></div>
+          <div class="cb">
+            <div class="cluster-grid">
+              <div class="ci healthy"><div class="ci-name">PK-SOUTH</div><div class="ci-pages">12 pages · Urdu</div><div class="ci-stats"><span style="color:var(--green)">Active</span><span style="color:var(--t4)">Risk 24</span></div></div>
+              <div class="ci warning"><div class="ci-name">PK-NORTH</div><div class="ci-pages">9 pages · Pashto</div><div class="ci-stats"><span style="color:var(--amber)">Slowed</span><span style="color:var(--t4)">Risk 61</span></div></div>
+              <div class="ci healthy"><div class="ci-name">GLOBAL-EN</div><div class="ci-pages">11 pages · English</div><div class="ci-stats"><span style="color:var(--green)">Active</span><span style="color:var(--t4)">Risk 18</span></div></div>
+              <div class="ci healthy"><div class="ci-name">AFRICA-FR</div><div class="ci-pages">8 pages · French</div><div class="ci-stats"><span style="color:var(--green)">Active</span><span style="color:var(--t4)">Risk 31</span></div></div>
+              <div class="ci paused"><div class="ci-name">INDO-BH</div><div class="ci-pages">5 pages · Bahasa</div><div class="ci-stats"><span style="color:var(--t4)">Paused</span><span style="color:var(--t4)">Risk 44</span></div></div>
+              <div class="ci healthy"><div class="ci-name">LATAM-ES</div><div class="ci-pages">7 pages · Spanish</div><div class="ci-stats"><span style="color:var(--green)">Active</span><span style="color:var(--t4)">Risk 22</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><span class="ct">Activity Feed</span><span class="ca">Clear</span></div>
+          <div class="cb" style="padding:0 14px;">
+            <div class="act-list">
+              <div class="act-item"><div class="adot" style="background:var(--amber)"></div><div><div class="act-text"><strong>Auto-slowdown</strong> — PK-North exceeded velocity</div><div class="act-time">2m ago · RISK ENGINE</div></div></div>
+              <div class="act-item"><div class="adot" style="background:var(--blue)"></div><div><div class="act-text"><strong>4 variants generated</strong> — "Hope in Crisis" EN/UR/FR/ES</div><div class="act-time">14m ago · CONTENT</div></div></div>
+              <div class="act-item"><div class="adot" style="background:var(--green)"></div><div><div class="act-text"><strong>Human checkpoint</strong> — 3 posts approved</div><div class="act-time">31m ago</div></div></div>
+              <div class="act-item"><div class="adot" style="background:var(--red)"></div><div><div class="act-text"><strong>Anomaly</strong> — INDO-BH reach drop −67%</div><div class="act-time">1h ago · HEALTH</div></div></div>
+              <div class="act-item"><div class="adot" style="background:var(--purple)"></div><div><div class="act-text"><strong>IP rotated</strong> — PK-SOUTH proxy refreshed</div><div class="act-time">2h ago · PROXY</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONNECT PAGES -->
+    <div class="view" id="view-connect">
+      <div style="margin-bottom:16px;"><div style="font-size:16px;font-weight:700;margin-bottom:4px;">Connect Social Media Pages</div><div style="font-size:12px;color:var(--t3);">Connect your pages securely via OAuth. Credentials are stored in an encrypted vault — no third-party access.</div></div>
+      <div class="plats-grid">
+        <div class="pc connected"><div class="pc-top"><div class="pc-logo" style="background:#e7f0fd">📘</div><div class="pc-cdot"></div></div><div class="pc-name">Facebook</div><div class="pc-desc">Pages, posts, scheduling and engagement tracking.</div><div class="pc-footer"><div class="pc-count"><span>21</span> pages</div><button class="cbtn con" onclick="openModal('Facebook','📘')">+ Add Page</button></div></div>
+        <div class="pc connected"><div class="pc-top"><div class="pc-logo" style="background:#fdf2f8">📷</div><div class="pc-cdot"></div></div><div class="pc-name">Instagram</div><div class="pc-desc">Business accounts — Reels, captions, reach tracking.</div><div class="pc-footer"><div class="pc-count"><span>14</span> accounts</div><button class="cbtn con" onclick="openModal('Instagram','📷')">+ Add</button></div></div>
+        <div class="pc"><div class="pc-top"><div class="pc-logo" style="background:#f0f9ff">🐦</div></div><div class="pc-name">Twitter / X</div><div class="pc-desc">Thread scheduling and engagement monitoring.</div><div class="pc-footer"><div class="pc-count"><span>0</span> accounts</div><button class="cbtn" onclick="openModal('Twitter/X','🐦')">Connect</button></div></div>
+        <div class="pc connected"><div class="pc-top"><div class="pc-logo" style="background:#fef2f2">▶️</div><div class="pc-cdot"></div></div><div class="pc-name">YouTube</div><div class="pc-desc">Video uploads, localized descriptions, community posts.</div><div class="pc-footer"><div class="pc-count"><span>8</span> channels</div><button class="cbtn con" onclick="openModal('YouTube','▶️')">+ Add</button></div></div>
+        <div class="pc"><div class="pc-top"><div class="pc-logo" style="background:#f5f5f5">🎵</div></div><div class="pc-name">TikTok</div><div class="pc-desc">Short-form content distribution per region.</div><div class="pc-footer"><div class="pc-count"><span>0</span> accounts</div><button class="cbtn" onclick="openModal('TikTok','🎵')">Connect</button></div></div>
+        <div class="pc"><div class="pc-top"><div class="pc-logo" style="background:#f0fdf4">💬</div></div><div class="pc-name">WhatsApp Business</div><div class="pc-desc">Broadcast API for opted-in contact lists.</div><div class="pc-footer"><div class="pc-count"><span>0</span> numbers</div><button class="cbtn" onclick="openModal('WhatsApp','💬')">Connect</button></div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">Connected Pages (43 total)</span><span class="ca">Export</span></div>
+        <div style="overflow-x:auto">
+          <table class="t">
+            <thead><tr><th>Page</th><th>Platform</th><th>Cluster</th><th>Followers</th><th>Risk</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="pn">Light of Lahore</td><td>📘 Facebook</td><td><span class="badge bgr">PK-SOUTH</span></td><td style="font-family:var(--mono)">12.4K</td><td><span class="badge bg">24</span></td><td><span class="badge bg">Active</span></td><td><span class="ca">Settings</span></td></tr>
+              <tr><td class="pn">Peshawar Hope</td><td>📘 Facebook</td><td><span class="badge bgr">PK-NORTH</span></td><td style="font-family:var(--mono)">8.2K</td><td><span class="badge ba">61</span></td><td><span class="badge ba">Caution</span></td><td><span class="ca">Settings</span></td></tr>
+              <tr><td class="pn">Global Truth EN</td><td>📷 Instagram</td><td><span class="badge bgr">GLOBAL-EN</span></td><td style="font-family:var(--mono)">31.7K</td><td><span class="badge bg">18</span></td><td><span class="badge bg">Active</span></td><td><span class="ca">Settings</span></td></tr>
+              <tr><td class="pn">Lumière Afrique</td><td>📘 Facebook</td><td><span class="badge bgr">AFRICA-FR</span></td><td style="font-family:var(--mono)">19.3K</td><td><span class="badge bg">31</span></td><td><span class="badge bg">Active</span></td><td><span class="ca">Settings</span></td></tr>
+              <tr><td class="pn">ASMO Channel</td><td>▶️ YouTube</td><td><span class="badge bgr">GLOBAL-EN</span></td><td style="font-family:var(--mono)">4.8K</td><td><span class="badge bg">12</span></td><td><span class="badge bg">Active</span></td><td><span class="ca">Settings</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- IP PROXY MANAGER -->
+    <div class="view" id="view-proxy">
+      <div style="margin-bottom:16px;"><div style="font-size:16px;font-weight:700;margin-bottom:4px;">IP Proxy Manager 🌐</div><div style="font-size:12px;color:var(--t3);">Each cluster gets its own dedicated Residential IP — Facebook sees it as different individual users.</div></div>
+      <div class="alert alert-warn">⚠ <strong>Rule:</strong> Only Residential Proxies allowed. Datacenter IPs and VPNs are detected by Facebook immediately.</div>
+      <div class="proxy-grid">
+        <div class="proxy-card"><div class="proxy-header"><span class="proxy-cluster">PK-SOUTH</span><span class="badge bg">Healthy</span></div><div class="proxy-ip">🌐 IP: 203.82.xx.xx (Lahore, PK)</div><div class="proxy-type"><span class="badge bp">Residential</span><span class="proxy-type-label" style="font-size:11px;color:var(--t3)">Dedicated · Never shared</span></div><div class="proxy-stats"><div class="ps-item">Uptime: <span>99.8%</span></div><div class="ps-item">Latency: <span>42ms</span></div><div class="ps-item">Flagged: <span>Never</span></div></div><div class="proxy-actions"><button class="btn" style="font-size:11px;padding:4px 9px;">Test IP</button><button class="btn" style="font-size:11px;padding:4px 9px;">Rotate</button></div></div>
+        <div class="proxy-card"><div class="proxy-header"><span class="proxy-cluster">PK-NORTH</span><span class="badge ba">Elevated</span></div><div class="proxy-ip">🌐 IP: 119.73.xx.xx (Peshawar, PK)</div><div class="proxy-type"><span class="badge bp">Residential</span><span class="proxy-type-label" style="font-size:11px;color:var(--t3)">Dedicated · Never shared</span></div><div class="proxy-stats"><div class="ps-item">Uptime: <span>97.2%</span></div><div class="ps-item">Latency: <span>68ms</span></div><div class="ps-item">Flagged: <span style="color:var(--amber)">Once</span></div></div><div class="proxy-actions"><button class="btn" style="font-size:11px;padding:4px 9px;">Test IP</button><button class="btn btn-p" style="font-size:11px;padding:4px 9px;">Rotate Now</button></div></div>
+        <div class="proxy-card"><div class="proxy-header"><span class="proxy-cluster">GLOBAL-EN</span><span class="badge bg">Healthy</span></div><div class="proxy-ip">🌐 IP: 82.45.xx.xx (London, UK)</div><div class="proxy-type"><span class="badge bp">Residential</span><span class="proxy-type-label" style="font-size:11px;color:var(--t3)">Dedicated · Never shared</span></div><div class="proxy-stats"><div class="ps-item">Uptime: <span>100%</span></div><div class="ps-item">Latency: <span>28ms</span></div><div class="ps-item">Flagged: <span>Never</span></div></div><div class="proxy-actions"><button class="btn" style="font-size:11px;padding:4px 9px;">Test IP</button><button class="btn" style="font-size:11px;padding:4px 9px;">Rotate</button></div></div>
+        <div class="proxy-card"><div class="proxy-header"><span class="proxy-cluster">AFRICA-FR</span><span class="badge bg">Healthy</span></div><div class="proxy-ip">🌐 IP: 197.234.xx.xx (Paris, FR)</div><div class="proxy-type"><span class="badge bp">Residential</span><span class="proxy-type-label" style="font-size:11px;color:var(--t3)">Dedicated · Never shared</span></div><div class="proxy-stats"><div class="ps-item">Uptime: <span>99.1%</span></div><div class="ps-item">Latency: <span>55ms</span></div><div class="ps-item">Flagged: <span>Never</span></div></div><div class="proxy-actions"><button class="btn" style="font-size:11px;padding:4px 9px;">Test IP</button><button class="btn" style="font-size:11px;padding:4px 9px;">Rotate</button></div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">IP Rules</span></div>
+        <div class="cb" style="padding:8px 14px;">
+          <div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">IPs are never shared or mixed between clusters</span></div>
+          <div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Flagged IP auto-replaced within 5 minutes</span></div>
+          <div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Only Residential IPs allowed — Datacenter and VPN blocked</span></div>
+          <div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">IP health check every 30 minutes</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE WARM-UP -->
+    <div class="view" id="view-warmup">
+      <div style="margin-bottom:16px;"><div style="font-size:16px;font-weight:700;margin-bottom:4px;">Page Warm-Up System 🔥</div><div style="font-size:12px;color:var(--t3);">Start new pages slowly — posting too fast immediately = high ban risk.</div></div>
+      <div class="card" style="margin-bottom:12px;">
+        <div class="ch"><span class="ct">Warm-Up Schedule</span></div>
+        <div class="cb">
+          <div style="overflow-x:auto">
+            <table class="t">
+              <thead><tr><th>Week</th><th>Posts/Day</th><th>Mode</th><th>Engagement</th><th>Goal</th></tr></thead>
+              <tbody>
+                <tr><td><span class="badge bb">Week 1–2</span></td><td style="font-family:var(--mono)">1–2</td><td>Manual only</td><td>Manual likes/comments</td><td>Make page look real &amp; organic</td></tr>
+                <tr><td><span class="badge bp">Week 3–4</span></td><td style="font-family:var(--mono)">3–4</td><td>Semi-auto</td><td>Organic growing</td><td>Establish routine</td></tr>
+                <tr><td><span class="badge bg">Week 5+</span></td><td style="font-family:var(--mono)">Full limit</td><td>Full system</td><td>Auto + manual mix</td><td>Normal operation</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">Active Warm-Up Pages</span><span class="ca">+ Add Page</span></div>
+        <div class="cb">
+          <div class="warmup-list">
+            <div class="wu-item"><div class="wu-page"><div class="wu-name">Karachi Truth Page</div><div class="wu-handle">@karachitruth · Facebook · PK-SOUTH</div></div><div class="wu-progress"><div class="wu-prog-label"><span>Progress</span><span>Week 2</span></div><div class="wu-bar"><div class="wu-fill" style="width:35%"></div></div></div><div class="wu-week"><span class="badge bb">Week 2</span></div><div class="wu-actions"><button class="qbtn">Details</button></div></div>
+            <div class="wu-item"><div class="wu-page"><div class="wu-name">Hope Pakistan</div><div class="wu-handle">@hopepakistan · Facebook · PK-NORTH</div></div><div class="wu-progress"><div class="wu-prog-label"><span>Progress</span><span>Week 4</span></div><div class="wu-bar"><div class="wu-fill" style="width:70%"></div></div></div><div class="wu-week"><span class="badge bp">Week 4</span></div><div class="wu-actions"><button class="qbtn">Details</button></div></div>
+            <div class="wu-item"><div class="wu-page"><div class="wu-name">Global Outreach</div><div class="wu-handle">@globaloutreach · Instagram · GLOBAL-EN</div></div><div class="wu-progress"><div class="wu-prog-label"><span>Progress</span><span>Week 6</span></div><div class="wu-bar"><div class="wu-fill" style="width:100%;background:var(--green)"></div></div></div><div class="wu-week"><span class="badge bg">Complete</span></div><div class="wu-actions"><button class="qbtn ok">Activate</button></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINGERPRINT -->
+    <div class="view" id="view-fingerprint">
+      <div style="margin-bottom:16px;"><div style="font-size:16px;font-weight:700;margin-bottom:4px;">Device Fingerprint Rotation 👁</div><div style="font-size:12px;color:var(--t3);">Facebook tracks more than just IP — browser and device too. Each cluster has a completely different profile.</div></div>
+      <div class="fp-grid" style="margin-bottom:12px;">
+        <div class="fp-card"><div class="fp-cluster">PK-SOUTH <span class="badge bg" style="font-size:9px">Active</span></div><div class="fp-detail"><div class="fp-row"><span class="fp-key">Browser</span><span class="fp-val">Chrome 121 · Win11</span></div><div class="fp-row"><span class="fp-key">Screen</span><span class="fp-val">1920×1080</span></div><div class="fp-row"><span class="fp-key">Timezone</span><span class="fp-val">Asia/Karachi</span></div><div class="fp-row"><span class="fp-key">Language</span><span class="fp-val">ur-PK</span></div><div class="fp-row"><span class="fp-key">Last Rotate</span><span class="fp-val">2d ago</span></div></div></div>
+        <div class="fp-card"><div class="fp-cluster">PK-NORTH <span class="badge ba" style="font-size:9px">Rotate Soon</span></div><div class="fp-detail"><div class="fp-row"><span class="fp-key">Browser</span><span class="fp-val">Firefox 122 · Win10</span></div><div class="fp-row"><span class="fp-key">Screen</span><span class="fp-val">1366×768</span></div><div class="fp-row"><span class="fp-key">Timezone</span><span class="fp-val">Asia/Karachi</span></div><div class="fp-row"><span class="fp-key">Language</span><span class="fp-val">ps-AF, ur-PK</span></div><div class="fp-row"><span class="fp-key">Last Rotate</span><span class="fp-val">7d ago</span></div></div></div>
+        <div class="fp-card"><div class="fp-cluster">GLOBAL-EN <span class="badge bg" style="font-size:9px">Active</span></div><div class="fp-detail"><div class="fp-row"><span class="fp-key">Browser</span><span class="fp-val">Chrome 121 · MacOS</span></div><div class="fp-row"><span class="fp-key">Screen</span><span class="fp-val">2560×1440</span></div><div class="fp-row"><span class="fp-key">Timezone</span><span class="fp-val">Europe/London</span></div><div class="fp-row"><span class="fp-key">Language</span><span class="fp-val">en-GB</span></div><div class="fp-row"><span class="fp-key">Last Rotate</span><span class="fp-val">3d ago</span></div></div></div>
+        <div class="fp-card"><div class="fp-cluster">AFRICA-FR <span class="badge bg" style="font-size:9px">Active</span></div><div class="fp-detail"><div class="fp-row"><span class="fp-key">Browser</span><span class="fp-val">Chrome 120 · Win10</span></div><div class="fp-row"><span class="fp-key">Screen</span><span class="fp-val">1440×900</span></div><div class="fp-row"><span class="fp-key">Timezone</span><span class="fp-val">Europe/Paris</span></div><div class="fp-row"><span class="fp-key">Language</span><span class="fp-val">fr-FR</span></div><div class="fp-row"><span class="fp-key">Last Rotate</span><span class="fp-val">1d ago</span></div></div></div>
+        <div class="fp-card"><div class="fp-cluster">INDO-BH <span class="badge br" style="font-size:9px">Paused</span></div><div class="fp-detail"><div class="fp-row"><span class="fp-key">Browser</span><span class="fp-val">Chrome 119 · Android</span></div><div class="fp-row"><span class="fp-key">Screen</span><span class="fp-val">390×844</span></div><div class="fp-row"><span class="fp-key">Timezone</span><span class="fp-val">Asia/Jakarta</span></div><div class="fp-row"><span class="fp-key">Language</span><span class="fp-val">id-ID</span></div><div class="fp-row"><span class="fp-key">Last Rotate</span><span class="fp-val">Paused</span></div></div></div>
+        <div class="fp-card"><div class="fp-cluster">LATAM-ES <span class="badge bg" style="font-size:9px">Active</span></div><div class="fp-detail"><div class="fp-row"><span class="fp-key">Browser</span><span class="fp-val">Edge 121 · Win11</span></div><div class="fp-row"><span class="fp-key">Screen</span><span class="fp-val">1920×1200</span></div><div class="fp-row"><span class="fp-key">Timezone</span><span class="fp-val">America/Bogota</span></div><div class="fp-row"><span class="fp-key">Language</span><span class="fp-val">es-CO</span></div><div class="fp-row"><span class="fp-key">Last Rotate</span><span class="fp-val">4d ago</span></div></div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">Rotation Rules</span></div>
+        <div class="cb" style="padding:8px 14px;">
+          <div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Auto-rotate every 7 days — same fingerprint becomes a detectable pattern</span></div>
+          <div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Cookies are never shared between clusters</span></div>
+          <div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Hide browser automation signatures</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIMICRY -->
+    <div class="view" id="view-mimicry">
+      <div style="margin-bottom:16px;"><div style="font-size:16px;font-weight:700;margin-bottom:4px;">Behavioral Mimicry Engine 🎭</div><div style="font-size:12px;color:var(--t3);">System behaves exactly like a real human — Facebook cannot detect any automation pattern.</div></div>
+      <div class="g2">
+        <div class="card">
+          <div class="ch"><span class="ct">Active Behaviors</span></div>
+          <div class="cb">
+            <div class="mimicry-list">
+              <div class="mim-item"><div class="mim-icon">⏱️</div><div class="mim-info"><div class="mim-name">Random Post Timing</div><div class="mim-desc">Never posts at exactly 9:00 — always randomized like 9:07, 9:23, 10:41</div></div><span class="badge bg">On</span></div>
+              <div class="mim-item"><div class="mim-icon">⌨️</div><div class="mim-info"><div class="mim-name">Typing Simulation</div><div class="mim-desc">Caption is typed gradually — never pasted instantly</div></div><span class="badge bg">On</span></div>
+              <div class="mim-item"><div class="mim-icon">📜</div><div class="mim-info"><div class="mim-name">Scroll Simulation</div><div class="mim-desc">Opens page, scrolls briefly, then posts — never posts instantly on page load</div></div><span class="badge bg">On</span></div>
+              <div class="mim-item"><div class="mim-icon">😴</div><div class="mim-info"><div class="mim-name">Rest Periods</div><div class="mim-desc">Activity near zero on Sundays and between 12am–7am</div></div><span class="badge bg">On</span></div>
+              <div class="mim-item"><div class="mim-icon">🖱️</div><div class="mim-info"><div class="mim-name">Human Delay</div><div class="mim-desc">Random 2–15 min wait after each post before next action</div></div><span class="badge bg">On</span></div>
+              <div class="mim-item"><div class="mim-icon">💬</div><div class="mim-info"><div class="mim-name">Comment Interaction</div><div class="mim-desc">Replies to every 3rd comment — generates real engagement signal</div></div><span class="badge ba">Partial</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><span class="ct">Detection Risk Score</span></div>
+          <div class="cb">
+            <div class="gauge-box">
+              <div style="font-size:9px;color:var(--t4);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;">Mimicry Score</div>
+              <div class="gauge-num" style="color:var(--green)">87<span style="font-size:14px;color:var(--t3)">/100</span></div>
+              <div class="gauge-sub">Human-Like Behavior</div>
+              <div style="margin-top:7px"><span class="badge bg">Low Detection Risk</span></div>
+            </div>
+            <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+            <div class="rm-wrap">
+              <div><div class="rm-row"><span class="rm-label">Timing Randomness</span><span class="rm-val">94%</span></div><div class="rm-track"><div class="rm-fill rf-g" style="width:94%"></div></div></div>
+              <div><div class="rm-row"><span class="rm-label">Typing Speed Variation</span><span class="rm-val">88%</span></div><div class="rm-track"><div class="rm-fill rf-g" style="width:88%"></div></div></div>
+              <div><div class="rm-row"><span class="rm-label">Rest Period Compliance</span><span class="rm-val">100%</span></div><div class="rm-track"><div class="rm-fill rf-g" style="width:100%"></div></div></div>
+              <div><div class="rm-row"><span class="rm-label">Engagement Rate</span><span class="rm-val">72%</span></div><div class="rm-track"><div class="rm-fill rf-a" style="width:72%"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT ENGINE -->
+    <div class="view" id="view-content">
+      <div style="max-width:760px">
+        <div class="wiz-steps">
+          <div class="ws done" onclick="gw(1)">01 Source</div>
+          <div class="ws active" onclick="gw(2)">02 Adapt</div>
+          <div class="ws" onclick="gw(3)">03 Review</div>
+          <div class="ws" onclick="gw(4)">04 Schedule</div>
+        </div>
+        <div class="wc" id="wiz1">
+          <div class="fgroup"><label class="flabel">Source Message</label><textarea class="ftextarea">God's love reaches every tribe and nation. No matter where you are, you are known and valued.</textarea></div>
+          <div class="frow"><div class="fgroup"><label class="flabel">Type</label><select class="fselect"><option>Inspirational Post</option><option>Event</option><option>Devotional</option></select></div><div class="fgroup"><label class="flabel">Sensitivity</label><select class="fselect"><option>Faith — General</option><option>Faith — Evangelism</option><option>Community</option></select></div></div>
+          <div class="wiz-nav"><button class="wb p" onclick="gw(2)">Generate Variants →</button></div>
+        </div>
+        <div class="wc active" id="wiz2">
+          <p style="font-size:12px;color:var(--t3);margin-bottom:10px;">Generated <strong style="color:var(--text)">6 distinct variants</strong> — different phrasing, tone, and cultural context per audience.</p>
+          <div class="vgrid">
+            <div class="vc"><div class="vtag">🇺🇸 English</div><div class="vtext">You are seen, valued, and deeply loved — no matter your story.</div><div class="vlang">warm · 3 hashtags</div></div>
+            <div class="vc"><div class="vtag">🇵🇰 Urdu</div><div class="vtext">خدا کی محبت ہر قوم تک پہنچتی ہے۔ آج کسی کو یہ احساس دلائیں۔</div><div class="vlang">reverent · 2 hashtags</div></div>
+            <div class="vc"><div class="vtag">🇫🇷 French</div><div class="vtext">L'amour de Dieu ne connaît pas les frontières. Chaque personne est précieuse.</div><div class="vlang">formal · 3 hashtags</div></div>
+            <div class="vc"><div class="vtag">🇧🇷 Portuguese</div><div class="vtext">Você é amado profundamente. Essa verdade é para todas as nações.</div><div class="vlang">direct · 4 hashtags</div></div>
+            <div class="vc"><div class="vtag">🇮🇩 Bahasa</div><div class="vtext">Kasih Tuhan menjangkau setiap suku. Kamu dikenal dan dihargai.</div><div class="vlang">gentle · 2 hashtags</div></div>
+            <div class="vc"><div class="vtag">🇰🇪 Swahili</div><div class="vtext">Upendo wa Mungu unafika kwa kila kabila. Wewe unajulikana.</div><div class="vlang">communal · 3 hashtags</div></div>
+          </div>
+          <div class="wiz-nav"><button class="wb" onclick="gw(1)">← Back</button><button class="wb p" onclick="gw(3)">Review →</button></div>
+        </div>
+        <div class="wc" id="wiz3">
+          <div class="queue">
+            <div class="qi"><div class="qdot" style="background:var(--green)"></div><div class="qm"><div class="qt">🇺🇸 English — "You are seen, valued..."</div><div class="qmeta"><span>GLOBAL-EN</span><span style="color:var(--green)">LOW Risk</span></div></div><div class="qact"><button class="qbtn">Edit</button><button class="qbtn ok">Approve</button></div></div>
+            <div class="qi"><div class="qdot" style="background:var(--green)"></div><div class="qm"><div class="qt">🇵🇰 Urdu — PK-SOUTH</div><div class="qmeta"><span>PK-SOUTH</span><span style="color:var(--green)">LOW Risk</span></div></div><div class="qact"><button class="qbtn">Edit</button><button class="qbtn ok">Approve</button></div></div>
+            <div class="qi"><div class="qdot" style="background:var(--amber)"></div><div class="qm"><div class="qt">🇵🇰 Urdu — PK-NORTH elevated risk</div><div class="qmeta"><span>PK-NORTH</span><span style="color:var(--amber)">ELEVATED</span></div></div><div class="qact"><button class="qbtn">Edit</button><button class="qbtn wa">Review</button></div></div>
+          </div>
+          <div class="wiz-nav"><button class="wb" onclick="gw(2)">← Back</button><button class="wb p" onclick="gw(4)">Schedule →</button></div>
+        </div>
+        <div class="wc" id="wiz4">
+          <div class="frow"><div class="fgroup"><label class="flabel">Window</label><select class="fselect"><option>Next 24h (randomized)</option><option>Next 48h</option><option>This week</option></select></div><div class="fgroup"><label class="flabel">Velocity</label><select class="fselect"><option>Conservative (safe)</option><option>Balanced</option><option>Aggressive</option></select></div></div>
+          <div class="card"><div class="cb" style="padding:6px 14px;"><div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Randomize exact posting times</span></div><div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Platform-specific format optimization</span></div><div class="trow"><div class="tog" onclick="this.classList.toggle('on')"></div><span class="tlabel">Pause PK-North cluster (elevated risk)</span></div><div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Require human approval before posting</span></div></div></div>
+          <div class="wiz-nav"><button class="wb" onclick="gw(3)">← Back</button><button class="wb p" onclick="gw(1);alert('✅ Queued! 18 posts · 4 clusters · Randomized 24h')">Queue →</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RISK ENGINE -->
+    <div class="view" id="view-risk">
+      <div class="alert alert-red">🔴 <strong>2 Alerts:</strong> PK-North velocity + INDO-BH anomaly.<span class="alert-dismiss" onclick="this.closest('.alert').style.display='none'">Dismiss</span></div>
+      <div class="g2">
+        <div class="card"><div class="ch"><span class="ct">Platform Risk</span></div><div class="cb"><div class="pr-list"><div class="pr-row"><div class="pr-icon">📘</div><div class="pr-info"><div class="pr-name">Facebook</div><div class="pr-detail">47 pages · API 58% · Variance 74%</div></div><div class="pr-track"><div class="pr-fill" style="width:26%;height:3px;background:var(--green);border-radius:2px"></div></div><div class="pr-num" style="color:var(--green)">26</div></div><div class="pr-row"><div class="pr-icon">📷</div><div class="pr-info"><div class="pr-name">Instagram</div><div class="pr-detail">31 pages · API 72% · Variance 61%</div></div><div class="pr-track"><div class="pr-fill" style="width:44%;height:3px;background:var(--amber);border-radius:2px"></div></div><div class="pr-num" style="color:var(--amber)">44</div></div><div class="pr-row"><div class="pr-icon">▶️</div><div class="pr-info"><div class="pr-name">YouTube</div><div class="pr-detail">8 channels · API 38%</div></div><div class="pr-track"><div class="pr-fill" style="width:14%;height:3px;background:var(--green);border-radius:2px"></div></div><div class="pr-num" style="color:var(--green)">14</div></div></div></div></div>
+        <div class="card"><div class="ch"><span class="ct">Active Rules</span><span class="ca">Edit</span></div><div class="cb" style="padding:8px 14px;"><div class="rule"><div class="rule-tag">RULE 001 · VELOCITY</div><div class="rule-text">Auto-slowdown if account >12/day or cluster >40/day</div><span class="badge bg">Active</span></div><div class="rule"><div class="rule-tag">RULE 002 · SIMILARITY</div><div class="rule-text">Flag if content similarity >35% across cluster</div><span class="badge bg">Active</span></div><div class="rule"><div class="rule-tag">RULE 003 · ANOMALY</div><div class="rule-text">Pause if reach drops >50% within 24h</div><span class="badge bg">Active</span></div><div class="rule"><div class="rule-tag">RULE 004 · API ERROR</div><div class="rule-text">Manual mode if errors >5% in 1h window</div><span class="badge ba">Triggered</span></div></div></div>
+      </div>
+      <div class="card"><div class="ch"><span class="ct">Account Health Matrix</span></div><div style="overflow-x:auto"><table class="t"><thead><tr><th>Page</th><th>Cluster</th><th>Engagement</th><th>Reach</th><th>Anomaly</th><th>Score</th><th>Status</th></tr></thead><tbody><tr><td class="pn">🇵🇰 Light of Lahore</td><td><span class="badge bgr">PK-SOUTH</span></td><td>4.2%</td><td><div class="hbw"><div class="hbar"><div class="hfill" style="width:84%;background:var(--green)"></div></div><span style="font-size:10px;font-family:var(--mono);color:var(--green)">84%</span></div></td><td style="font-size:10px;color:var(--t4);font-family:var(--mono)">None</td><td style="font-family:var(--mono);font-weight:700">91</td><td><span class="badge bg">Safe</span></td></tr><tr><td class="pn">🇵🇰 Peshawar Hope</td><td><span class="badge bgr">PK-NORTH</span></td><td>2.1%</td><td><div class="hbw"><div class="hbar"><div class="hfill" style="width:52%;background:var(--amber)"></div></div><span style="font-size:10px;font-family:var(--mono);color:var(--amber)">52%</span></div></td><td style="font-size:10px;color:var(--amber);font-family:var(--mono)">2d ago</td><td style="font-family:var(--mono);font-weight:700;color:var(--amber)">61</td><td><span class="badge ba">Caution</span></td></tr><tr><td class="pn">🇺🇸 Global Truth EN</td><td><span class="badge bgr">GLOBAL-EN</span></td><td>5.8%</td><td><div class="hbw"><div class="hbar"><div class="hfill" style="width:91%;background:var(--blue)"></div></div><span style="font-size:10px;font-family:var(--mono);color:var(--blue)">91%</span></div></td><td style="font-size:10px;color:var(--t4);font-family:var(--mono)">None</td><td style="font-family:var(--mono);font-weight:700">94</td><td><span class="badge bg">Safe</span></td></tr><tr><td class="pn">🇮🇩 Cahaya Indo</td><td><span class="badge bgr">INDO-BH</span></td><td>0.8%</td><td><div class="hbw"><div class="hbar"><div class="hfill" style="width:23%;background:var(--red)"></div></div><span style="font-size:10px;font-family:var(--mono);color:var(--red)">23%</span></div></td><td style="font-size:10px;color:var(--red);font-family:var(--mono)">Today</td><td style="font-family:var(--mono);font-weight:700;color:var(--red)">32</td><td><span class="badge br">Paused</span></td></tr></tbody></table></div></div>
+    </div>
+
+    <!-- CLUSTERS -->
+    <div class="view" id="view-clusters">
+      <div class="stats-row">
+        <div class="sc"><div class="sc-top"><span class="sc-label">Total</span></div><div class="sc-val">6</div><div class="sc-delta">Isolated groups</div></div>
+        <div class="sc"><div class="sc-top"><span class="sc-label">Healthy</span></div><div class="sc-val" style="color:var(--green)">4</div><div class="sc-delta up">Active</div></div>
+        <div class="sc"><div class="sc-top"><span class="sc-label">Warning</span></div><div class="sc-val wa">1</div><div class="sc-delta wa">PK-North</div></div>
+        <div class="sc"><div class="sc-top"><span class="sc-label">Paused</span></div><div class="sc-val" style="color:var(--t3)">1</div><div class="sc-delta">INDO-BH</div></div>
+        <div class="sc"><div class="sc-top"><span class="sc-label">Total Pages</span></div><div class="sc-val">52</div><div class="sc-delta up">6 regions</div></div>
+      </div>
+      <div class="card"><div class="ch"><span class="ct">All Clusters</span><span class="ca">+ New</span></div><div style="overflow-x:auto"><table class="t"><thead><tr><th>Cluster</th><th>Region</th><th>Languages</th><th>Pages</th><th>Posts Today</th><th>Risk</th><th>IP</th><th>Status</th></tr></thead><tbody><tr><td class="pn" style="font-family:var(--mono)">PK-SOUTH</td><td>Pakistan South</td><td>Urdu, Punjabi</td><td>12</td><td>28</td><td style="font-family:var(--mono);color:var(--green)">24</td><td style="font-size:10px;font-family:var(--mono);color:var(--t3)">203.82.xx.xx</td><td><span class="badge bg">Active</span></td></tr><tr><td class="pn" style="font-family:var(--mono);color:var(--amber)">PK-NORTH</td><td>Pakistan North</td><td>Urdu, Pashto</td><td>9</td><td>14 ⏸</td><td style="font-family:var(--mono);color:var(--amber)">61</td><td style="font-size:10px;font-family:var(--mono);color:var(--t3)">119.73.xx.xx</td><td><span class="badge ba">Slowed</span></td></tr><tr><td class="pn" style="font-family:var(--mono)">GLOBAL-EN</td><td>International</td><td>English</td><td>11</td><td>22</td><td style="font-family:var(--mono);color:var(--green)">18</td><td style="font-size:10px;font-family:var(--mono);color:var(--t3)">82.45.xx.xx</td><td><span class="badge bg">Active</span></td></tr><tr><td class="pn" style="font-family:var(--mono)">AFRICA-FR</td><td>West Africa</td><td>French</td><td>8</td><td>16</td><td style="font-family:var(--mono);color:var(--green)">31</td><td style="font-size:10px;font-family:var(--mono);color:var(--t3)">197.234.xx.xx</td><td><span class="badge bg">Active</span></td></tr><tr><td class="pn" style="font-family:var(--mono);color:var(--t3)">INDO-BH</td><td>Indonesia</td><td>Bahasa</td><td>5</td><td>0</td><td style="font-family:var(--mono);color:var(--red)">44</td><td style="font-size:10px;font-family:var(--mono);color:var(--t4)">Paused</td><td><span class="badge br">Paused</span></td></tr><tr><td class="pn" style="font-family:var(--mono)">LATAM-ES</td><td>Latin America</td><td>Spanish</td><td>7</td><td>18</td><td style="font-family:var(--mono);color:var(--green)">22</td><td style="font-size:10px;font-family:var(--mono);color:var(--t3)">190.xx.xx.xx</td><td><span class="badge bg">Active</span></td></tr></tbody></table></div></div>
+    </div>
+
+    <!-- DISTRIBUTION -->
+    <div class="view" id="view-distribution">
+      <div class="card"><div class="ch"><span class="ct">Scheduled Queue</span><span class="ca">Pause All</span></div><div class="cb"><div class="queue"><div class="qi"><div class="qdot" style="background:var(--green)"></div><div class="qm"><div class="qt">Easter Message (EN) → GLOBAL-EN · 11 pages</div><div class="qmeta"><span>Tomorrow 09:07–13:44 (randomized)</span><span>Conservative</span></div></div><div style="font-size:11px;color:var(--green);font-family:var(--mono)">Active</div></div><div class="qi"><div class="qdot" style="background:var(--blue)"></div><div class="qm"><div class="qt">Easter Message (UR) → PK-SOUTH · 12 pages</div><div class="qmeta"><span>Tomorrow 10:23–16:51 (randomized)</span></div></div><div style="font-size:11px;color:var(--t3);font-family:var(--mono)">Queued</div></div><div class="qi"><div class="qdot" style="background:var(--amber)"></div><div class="qm"><div class="qt">Easter Message (UR) → PK-NORTH — slowed</div><div class="qmeta"><span style="color:var(--amber)">Velocity -40% · Risk Engine</span></div></div><div style="font-size:11px;color:var(--amber);font-family:var(--mono)">Slowed</div></div></div></div></div>
+      <div class="g2"><div class="card"><div class="ch"><span class="ct">Facebook Settings</span></div><div class="cb" style="padding:6px 14px;"><div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Prefer link posts over native text</span></div><div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Peak hours: 12–2pm, 7–9pm local time</span></div><div class="trow"><div class="tog" onclick="this.classList.toggle('on')"></div><span class="tlabel">Auto-share to connected groups</span></div></div></div><div class="card"><div class="ch"><span class="ct">Instagram Settings</span></div><div class="cb" style="padding:6px 14px;"><div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Prioritize Reels format</span></div><div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Caption-first approach (no links)</span></div><div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Contextual hashtags only (max 5)</span></div></div></div></div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="view" id="view-security">
+      <div class="g2">
+        <div class="card"><div class="ch"><span class="ct">OAuth Token Vault</span><span class="ca">Rotate All</span></div><div class="cb" style="padding:0 14px;"><div class="token-list"><div class="token-row"><div class="t-plat">📘</div><div class="t-info"><div class="t-name">Facebook — PK-SOUTH (12)</div><div class="t-mask">Bearer ••••••••r4k9</div></div><div class="t-exp">18 days</div><span class="badge bg">Valid</span></div><div class="token-row"><div class="t-plat">📘</div><div class="t-info"><div class="t-name">Facebook — PK-NORTH (9)</div><div class="t-mask">Bearer ••••••••m2x1</div></div><div class="t-exp">3 days</div><span class="badge ba">Expiring</span></div><div class="token-row"><div class="t-plat">📷</div><div class="t-info"><div class="t-name">Instagram — GLOBAL-EN (11)</div><div class="t-mask">Bearer ••••••••t7p3</div></div><div class="t-exp">45 days</div><span class="badge bg">Valid</span></div></div></div></div>
+        <div class="card"><div class="ch"><span class="ct">Access Control</span><span class="ca">+ User</span></div><div style="overflow-x:auto"><table class="t"><thead><tr><th>User</th><th>Role</th><th>Clusters</th><th>Status</th></tr></thead><tbody><tr><td class="pn">@admin</td><td><span class="badge bgr">Super Admin</span></td><td>All</td><td><span class="badge bg">Active</span></td></tr><tr><td class="pn">@content</td><td><span class="badge bb">Editor</span></td><td>All</td><td><span class="badge bg">Active</span></td></tr><tr><td class="pn">@pk_op</td><td><span class="badge bgr">Operator</span></td><td>PK-SOUTH, PK-NORTH</td><td><span class="badge bg">Active</span></td></tr></tbody></table></div></div>
+      </div>
+    </div>
+
+    <!-- KILL SWITCH -->
+    <div class="view" id="view-killswitch">
+      <div class="ks-banner" id="ksBanner">⊗ <strong>Kill Switch Active</strong> — All posting paused. Manual mode ON.<button class="btn" style="margin-left:auto" onclick="deKS()">Resume Operations</button></div>
+      <div class="g2">
+        <div class="card"><div class="ch"><span class="ct">Emergency Kill Switch</span></div><div class="cb" style="text-align:center;padding:28px 16px;"><div style="width:52px;height:52px;border-radius:12px;background:var(--red-bg);border:1px solid var(--red-b);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 14px;">⊗</div><div style="font-size:13px;font-weight:700;margin-bottom:5px;">Network-Wide Halt</div><div style="font-size:12px;color:var(--t3);line-height:1.6;margin-bottom:18px;max-width:260px;margin-left:auto;margin-right:auto;">Pause all automated posting across the entire network and switch to manual mode immediately.</div><button class="btn btn-r" style="padding:8px 22px;" onclick="document.getElementById('killModal').classList.add('open')">⊗ Activate</button><div style="font-size:10px;color:var(--t4);font-family:var(--mono);margin-top:10px;">Last activated: Never</div></div></div>
+        <div class="card"><div class="ch"><span class="ct">Auto-Trigger</span></div><div class="cb" style="padding:6px 14px;"><div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Engagement drops >60% across 3+ accounts within 2 hours</span></div><div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">API errors exceed 8% in any 30-minute window</span></div><div class="trow"><div class="tog on" onclick="this.classList.toggle('on')"></div><span class="tlabel">Platform flags detected on 2+ accounts in same cluster</span></div></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CONNECT MODAL -->
+<div class="modal-overlay" id="connectModal">
+  <div class="modal-box">
+    <div class="mh"><div class="mtitle" id="mTitle">Connect Account</div><button class="mclose" onclick="closeModal()">✕</button></div>
+    <div class="msub">Connect via OAuth — your password is never stored. Token goes into an encrypted vault.</div>
+    <div class="osteps">
+      <div class="os"><div class="os-num">1</div><div class="os-text">Authenticate via OAuth — we request permission, not your password</div></div>
+      <div class="os"><div class="os-num">2</div><div class="os-text">Select the pages you want to manage</div></div>
+      <div class="os"><div class="os-num">3</div><div class="os-text">Assign to a cluster and configure permissions</div></div>
+    </div>
+    <input class="minput" placeholder="Page URL or @handle" />
+    <select class="mselect"><option value="">Assign to cluster...</option><option>PK-SOUTH</option><option>PK-NORTH</option><option>GLOBAL-EN</option><option>AFRICA-FR</option><option>LATAM-ES</option></select>
+    <div class="mactions">
+      <button class="mcancel" onclick="closeModal()">Cancel</button>
+      <button class="mconnect" onclick="closeModal();setTimeout(()=>alert('✅ OAuth authorized! Page successfully added to cluster.'),200)">Authorize & Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- KILL MODAL -->
+<div class="kill-overlay" id="killModal">
+  <div class="kill-box">
+    <div class="kill-title">⊗ Confirm Kill Switch Activation</div>
+    <div class="kill-body">All automated activity across the entire network will be stopped immediately. Manual re-authorization is required to resume.</div>
+    <ul class="kill-scope">
+      <li>All scheduled posts paused immediately</li>
+      <li>All clusters switched to manual mode</li>
+      <li>API calls reduced to minimum heartbeat</li>
+      <li>Team alert will be triggered</li>
+      <li>Recovery checklist started automatically</li>
+    </ul>
+    <div class="kill-actions">
+      <button class="kcancel" onclick="document.getElementById('killModal').classList.remove('open')">Cancel</button>
+      <button class="kconfirm" onclick="activateKS()">⊗ Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const titles={dashboard:'Dashboard',connect:'Connect Pages',content:'Content Engine',distribution:'Distribution',risk:'Risk Engine',clusters:'Clusters',security:'Security',proxy:'IP Proxy Manager',warmup:'Page Warm-Up',fingerprint:'Device Fingerprint',mimicry:'Behavior Mimicry',killswitch:'Kill Switch'};
+const crumbs={dashboard:'Overview',connect:'Link Accounts',content:'Create & Adapt',distribution:'Schedule & Post',risk:'Platform Health',clusters:'Account Clusters',security:'Tokens & Access',proxy:'Detection Shield',warmup:'Detection Shield',fingerprint:'Detection Shield',mimicry:'Detection Shield',killswitch:'Emergency'};
+
+function sw(id,el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const v=document.getElementById('view-'+id);
+  v.classList.add('active');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.getElementById('tbTitle').textContent=titles[id]||id;
+  document.getElementById('tbCrumb').textContent=crumbs[id]||'';
+}
+
+// Chart
+(function(){
+  const d=[34,28,41,38,52,44,61,48,55,42,58,64,51,84];
+  const l=['M','T','W','T','F','S','S','M','T','W','T','F','S','T'];
+  const mx=Math.max(...d);
+  const c=document.getElementById('chart'),lb=document.getElementById('chartLbl');
+  d.forEach((v,i)=>{
+    const b=document.createElement('div');
+    b.className='bc-bar'+(i===d.length-1?' today':'');
+    b.style.height=(v/mx*100)+'%';c.appendChild(b);
+    const l2=document.createElement('div');l2.className='bc-lbl';l2.textContent=l[i];lb.appendChild(l2);
+  });
+})();
+
+// Wizard
+function gw(n){
+  document.querySelectorAll('.wc').forEach((s,i)=>s.classList.toggle('active',i===n-1));
+  document.querySelectorAll('.ws').forEach((s,i)=>{s.classList.remove('active','done');if(i===n-1)s.classList.add('active');else if(i<n-1)s.classList.add('done');});
+}
+
+// Modal
+function openModal(name){
+  document.getElementById('mTitle').textContent='Connect '+name;
+  document.getElementById('connectModal').classList.add('open');
+}
+function closeModal(){document.getElementById('connectModal').classList.remove('open');}
+document.getElementById('connectModal').addEventListener('click',e=>{if(e.target===document.getElementById('connectModal'))closeModal();});
+
+// Kill
+function activateKS(){
+  document.getElementById('killModal').classList.remove('open');
+  document.getElementById('ksBanner').classList.add('visible');
+  sw('killswitch',null);
+  document.querySelectorAll('.ni').forEach(n=>{if(n.textContent.includes('Kill'))n.classList.add('active');});
+}
+function deKS(){document.getElementById('ksBanner').classList.remove('visible');}
+
+// Animate
+setTimeout(()=>{document.querySelectorAll('.rm-fill').forEach(el=>{const w=el.style.width;el.style.width='0';requestAnimationFrame(()=>{el.style.width=w;});});},300);
+</script>
+</body>
+</html>
